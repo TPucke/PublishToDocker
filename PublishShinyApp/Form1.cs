@@ -169,13 +169,11 @@ namespace PublishShinyApp
                 return;
             }
 
-
             List<string> dockerFileLines = new List<string>();
             dockerFileLines.Add($"FROM {comboBaseRepository.Text}:{lstTags.SelectedItem.ToString()}");
             dockerFileLines.Add(@"RUN apt-get update && apt-get install libcurl4-openssl-dev libv8-3.14-dev -y &&\");
             dockerFileLines.Add( "    mkdir -p /var/lib/shiny-server/bookmarks/shiny");
-            dockerFileLines.Add("COPY server.R /srv/shiny-server/");
-            dockerFileLines.Add("COPY ui.R /srv/shiny-server/");
+            dockerFileLines.Add("COPY *.R /srv/shiny-server/");
             if (lstPackages.Items.Count > 0)
             {
                 List<string> packageList = new List<string>();
