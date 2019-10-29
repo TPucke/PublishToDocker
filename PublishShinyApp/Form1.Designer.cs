@@ -55,6 +55,9 @@
             this.btnBuild = new System.Windows.Forms.Button();
             this.txtAddPackage = new System.Windows.Forms.TextBox();
             this.btnAddPackage = new System.Windows.Forms.Button();
+            this.btnPush = new System.Windows.Forms.Button();
+            this.txtTargetTag = new System.Windows.Forms.TextBox();
+            this.lblTargetTag = new System.Windows.Forms.Label();
             this.grpBaseRegistry.SuspendLayout();
             this.grpTargetRegistry.SuspendLayout();
             this.SuspendLayout();
@@ -274,14 +277,14 @@
             // lstPackages
             // 
             this.lstPackages.FormattingEnabled = true;
-            this.lstPackages.Location = new System.Drawing.Point(308, 250);
+            this.lstPackages.Location = new System.Drawing.Point(306, 220);
             this.lstPackages.Name = "lstPackages";
             this.lstPackages.Size = new System.Drawing.Size(209, 186);
             this.lstPackages.TabIndex = 100;
             // 
             // btnApplicationFolder
             // 
-            this.btnApplicationFolder.Location = new System.Drawing.Point(308, 195);
+            this.btnApplicationFolder.Location = new System.Drawing.Point(306, 165);
             this.btnApplicationFolder.Name = "btnApplicationFolder";
             this.btnApplicationFolder.Size = new System.Drawing.Size(72, 23);
             this.btnApplicationFolder.TabIndex = 101;
@@ -292,10 +295,11 @@
             // lblApplicationFolder
             // 
             this.lblApplicationFolder.AutoSize = true;
-            this.lblApplicationFolder.Location = new System.Drawing.Point(396, 200);
+            this.lblApplicationFolder.Location = new System.Drawing.Point(394, 170);
             this.lblApplicationFolder.Name = "lblApplicationFolder";
-            this.lblApplicationFolder.Size = new System.Drawing.Size(0, 13);
+            this.lblApplicationFolder.Size = new System.Drawing.Size(219, 13);
             this.lblApplicationFolder.TabIndex = 102;
+            this.lblApplicationFolder.Text = "C:\\Users\\Tom\\source\\github\\shinychickapp";
             // 
             // lstTags
             // 
@@ -307,9 +311,9 @@
             // 
             // btnBuild
             // 
-            this.btnBuild.Location = new System.Drawing.Point(712, 165);
+            this.btnBuild.Location = new System.Drawing.Point(529, 335);
             this.btnBuild.Name = "btnBuild";
-            this.btnBuild.Size = new System.Drawing.Size(75, 23);
+            this.btnBuild.Size = new System.Drawing.Size(257, 23);
             this.btnBuild.TabIndex = 104;
             this.btnBuild.Text = "Build";
             this.btnBuild.UseVisualStyleBackColor = true;
@@ -317,14 +321,15 @@
             // 
             // txtAddPackage
             // 
-            this.txtAddPackage.Location = new System.Drawing.Point(308, 224);
+            this.txtAddPackage.Location = new System.Drawing.Point(306, 194);
             this.txtAddPackage.Name = "txtAddPackage";
             this.txtAddPackage.Size = new System.Drawing.Size(119, 20);
             this.txtAddPackage.TabIndex = 105;
+            this.txtAddPackage.Text = "ggplot2";
             // 
             // btnAddPackage
             // 
-            this.btnAddPackage.Location = new System.Drawing.Point(433, 222);
+            this.btnAddPackage.Location = new System.Drawing.Point(431, 192);
             this.btnAddPackage.Name = "btnAddPackage";
             this.btnAddPackage.Size = new System.Drawing.Size(84, 23);
             this.btnAddPackage.TabIndex = 106;
@@ -332,11 +337,41 @@
             this.btnAddPackage.UseVisualStyleBackColor = true;
             this.btnAddPackage.Click += new System.EventHandler(this.btnAddPackage_Click);
             // 
+            // btnPush
+            // 
+            this.btnPush.Location = new System.Drawing.Point(531, 374);
+            this.btnPush.Name = "btnPush";
+            this.btnPush.Size = new System.Drawing.Size(255, 23);
+            this.btnPush.TabIndex = 107;
+            this.btnPush.Text = "Push To Target Registry";
+            this.btnPush.UseVisualStyleBackColor = true;
+            this.btnPush.Click += new System.EventHandler(this.btnPush_Click);
+            // 
+            // txtTargetTag
+            // 
+            this.txtTargetTag.Location = new System.Drawing.Point(372, 424);
+            this.txtTargetTag.Name = "txtTargetTag";
+            this.txtTargetTag.Size = new System.Drawing.Size(143, 20);
+            this.txtTargetTag.TabIndex = 108;
+            this.txtTargetTag.Text = "myshinychickapp:1.0";
+            // 
+            // lblTargetTag
+            // 
+            this.lblTargetTag.AutoSize = true;
+            this.lblTargetTag.Location = new System.Drawing.Point(303, 428);
+            this.lblTargetTag.Name = "lblTargetTag";
+            this.lblTargetTag.Size = new System.Drawing.Size(63, 13);
+            this.lblTargetTag.TabIndex = 109;
+            this.lblTargetTag.Text = "Target Tag:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.lblTargetTag);
+            this.Controls.Add(this.txtTargetTag);
+            this.Controls.Add(this.btnPush);
             this.Controls.Add(this.btnAddPackage);
             this.Controls.Add(this.txtAddPackage);
             this.Controls.Add(this.btnBuild);
@@ -387,6 +422,9 @@
         private System.Windows.Forms.Button btnBuild;
         private System.Windows.Forms.TextBox txtAddPackage;
         private System.Windows.Forms.Button btnAddPackage;
+        private System.Windows.Forms.Button btnPush;
+        private System.Windows.Forms.TextBox txtTargetTag;
+        private System.Windows.Forms.Label lblTargetTag;
     }
 }
 

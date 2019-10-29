@@ -1,6 +1,9 @@
-﻿using Docker.Registry.DotNet;
+﻿using Docker.DotNet;
+using Docker.DotNet.Models;
+using Docker.Registry.DotNet;
 using Docker.Registry.DotNet.Authentication;
 using Docker.Registry.DotNet.Models;
+using ICSharpCode.SharpZipLib.Tar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -111,14 +114,14 @@ namespace PublishShinyApp
                 catch (UnauthorizedAccessException ex)
                 {
                     // authentication failed
-                    MessageBox.Show("Authentication failed", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Authentication failed with {ex.Message}", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Cursor = PreviousCursor;
                     return;
                 }
                 catch (RegistryConnectionException ex)
                 {
                     // connection failed
-                    MessageBox.Show("Unable to connect", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Unable to connect, exception {ex.Message})", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Cursor = PreviousCursor;
                     return;
                 }
@@ -157,10 +160,9 @@ namespace PublishShinyApp
             }
         }
 
-        private void btnBuild_Click(object sender, EventArgs e)
+        private async void btnBuild_Click(object sender, EventArgs e)
         {
             if (_baseRegistryClient == null ||
-                _targetRegistryClient == null ||
                 string.IsNullOrWhiteSpace(comboBaseRepository.Text) ||
                 lstTags.SelectedIndex < 0 
                 )
@@ -189,11 +191,67 @@ namespace PublishShinyApp
             dockerFileLines.Add("CMD [\"/usr/bin/shiny-server.sh\"]");
 
             File.WriteAllLines(Path.Combine(lblApplicationFolder.Text, "dockerfile"), dockerFileLines);
+
+            Directory.SetCurrentDirectory(lblApplicationFolder.Text);
+
+            // The contents of the application have to be put in a tar file
+            DirectoryInfo directoryOfFilesToBeTarred = new DirectoryInfo(lblApplicationFolder.Text);
+            FileInfo[] filesInDirectory = directoryOfFilesToBeTarred.GetFiles();
+            String tarArchiveName = Path.Combine(lblApplicationFolder.Text, "mytararchive.tar");
+            using (TarArchive tarArchive = TarArchive.CreateOutputTarArchive(File.Create(tarArchiveName), TarBuffer.DefaultBlockFactor))
+            {
+                foreach (FileInfo fileToBeTarred in filesInDirectory)
+                {
+                    TarEntry entry = TarEntry.CreateEntryFromFile(fileToBeTarred.FullName);
+                    tarArchive.WriteEntry(entry, true);
+                }
+            }
+
+            DockerClient localClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
+            string dockerfile = Path.Combine(lblApplicationFolder.Text, "dockerfile").Replace(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
+
+            try
+            {
+                using (Stream result = await localClient.Images.BuildImageFromDockerfileAsync(
+                                                                new FileStream(tarArchiveName, FileMode.Open), 
+                                                                new ImageBuildParameters { Tags = new List<string> { $"{comboTargetRegistry.Text}/{txtTargetTag.Text}" } }))
+                {
+                    using (FileStream writer = new FileStream(Path.Combine(lblApplicationFolder.Text, "output.file").Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), FileMode.Create))
+                    {
+                        int bytesread = 0;
+                        do
+                        {
+                            byte[] buffer = new byte[1000];
+                            bytesread = result.Read(buffer, 0, 1000);
+                            writer.Write(buffer, 0, bytesread);
+                            writer.Flush();
+                        }
+                        while (bytesread > 0);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Exception with message {ex.Message}");
+            }
+
+            File.Delete(tarArchiveName);
         }
 
         private void btnAddPackage_Click(object sender, EventArgs e)
         {
             lstPackages.Items.Add(txtAddPackage.Text);
+        }
+
+        private void btnPush_Click(object sender, EventArgs e)
+        {
+            if (_targetRegistryClient == null || string.IsNullOrWhiteSpace(txtTargetTag.Text))
+            {
+                MessageBox.Show("something is not prepared");
+                return;
+            }
+
+            
         }
     }
 }
