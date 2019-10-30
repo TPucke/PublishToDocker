@@ -261,8 +261,6 @@ namespace PublishShinyApp
         {
             PortBinding binding = new PortBinding { HostPort = "3838", HostIP = "localhost" };
             var exposedPorts = new Dictionary<string, EmptyStruct> { { "3838", default(EmptyStruct) } };
-            //var onePortBinding = new KeyValuePair<string, IList<PortBinding>>("3838", new List<PortBinding> { binding });
-
             var hostConfig = new HostConfig
             {
                 PortBindings = new Dictionary<string,IList<PortBinding>> {
