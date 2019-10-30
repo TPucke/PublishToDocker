@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -21,10 +22,13 @@ namespace PublishShinyApp
     {
         IRegistryClient _baseRegistryClient = default;
         IRegistryClient _targetRegistryClient = default;
-        
+        DockerClient _localEngineClient = default;
+        string _runningContainerId = string.Empty;
+
         public Form1()
         {
             InitializeComponent();
+            _localEngineClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
         }
 
         private void chkAnonymous_CheckedChanged(object sender, EventArgs e)
@@ -164,7 +168,7 @@ namespace PublishShinyApp
         {
             if (_baseRegistryClient == null ||
                 string.IsNullOrWhiteSpace(comboBaseRepository.Text) ||
-                lstTags.SelectedIndex < 0 
+                lstTags.SelectedIndex < 0
                 )
             {
                 MessageBox.Show("something is not prepared");
@@ -174,7 +178,7 @@ namespace PublishShinyApp
             List<string> dockerFileLines = new List<string>();
             dockerFileLines.Add($"FROM {comboBaseRepository.Text}:{lstTags.SelectedItem.ToString()}");
             dockerFileLines.Add(@"RUN apt-get update && apt-get install libcurl4-openssl-dev libv8-3.14-dev -y &&\");
-            dockerFileLines.Add( "    mkdir -p /var/lib/shiny-server/bookmarks/shiny");
+            dockerFileLines.Add("    mkdir -p /var/lib/shiny-server/bookmarks/shiny");
             dockerFileLines.Add("COPY *.R /srv/shiny-server/");
             if (lstPackages.Items.Count > 0)
             {
@@ -207,13 +211,12 @@ namespace PublishShinyApp
                 }
             }
 
-            DockerClient localClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
-            string dockerfile = Path.Combine(lblApplicationFolder.Text, "dockerfile").Replace(Path.DirectorySeparatorChar,Path.AltDirectorySeparatorChar);
+            string dockerfile = Path.Combine(lblApplicationFolder.Text, "dockerfile").Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             try
             {
-                using (Stream result = await localClient.Images.BuildImageFromDockerfileAsync(
-                                                                new FileStream(tarArchiveName, FileMode.Open), 
+                using (Stream result = await _localEngineClient.Images.BuildImageFromDockerfileAsync(
+                                                                new FileStream(tarArchiveName, FileMode.Open),
                                                                 new ImageBuildParameters { Tags = new List<string> { $"{comboTargetRegistry.Text}/{txtTargetTag.Text}" } }))
                 {
                     using (FileStream writer = new FileStream(Path.Combine(lblApplicationFolder.Text, "output.file").Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), FileMode.Create))
@@ -230,7 +233,7 @@ namespace PublishShinyApp
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Exception with message {ex.Message}");
             }
@@ -243,7 +246,7 @@ namespace PublishShinyApp
             lstPackages.Items.Add(txtAddPackage.Text);
         }
 
-        private void btnPush_Click(object sender, EventArgs e)
+        private async void btnPush_Click(object sender, EventArgs e)
         {
             if (_targetRegistryClient == null || string.IsNullOrWhiteSpace(txtTargetTag.Text))
             {
@@ -251,7 +254,57 @@ namespace PublishShinyApp
                 return;
             }
 
-            
+            await _localEngineClient.Images.PushImageAsync($"{comboTargetRegistry.Text}/{txtTargetTag.Text}", new ImagePushParameters { }, new AuthConfig { }, new ProgressToDebug());
+        }
+
+        private async void btnRun_Click(object sender, EventArgs e)
+        {
+            PortBinding binding = new PortBinding { HostPort = "3838", HostIP = "localhost" };
+            var exposedPorts = new Dictionary<string, EmptyStruct> { { "3838", default(EmptyStruct) } };
+            //var onePortBinding = new KeyValuePair<string, IList<PortBinding>>("3838", new List<PortBinding> { binding });
+
+            var hostConfig = new HostConfig
+            {
+                PortBindings = new Dictionary<string,IList<PortBinding>> {
+                    { "3838", new List<PortBinding> { binding } }
+                }
+            };
+
+            CreateContainerResponse rsp = await _localEngineClient.Containers.CreateContainerAsync(
+                new CreateContainerParameters {
+                    ExposedPorts = exposedPorts,
+                    HostConfig = hostConfig,
+                    Image = $"{comboTargetRegistry.Text}/{txtTargetTag.Text}" 
+                });
+
+            Debug.WriteLine($"Created container with id {rsp.ID}");
+            foreach (string warning in rsp.Warnings)
+            {
+                Debug.WriteLine($"    Created container warning {warning}");
+            }
+
+            await _localEngineClient.Containers.StartContainerAsync(rsp.ID, new ContainerStartParameters { });
+
+            _runningContainerId = rsp.ID;
+        }
+
+        private async void btnKill_Click(object sender, EventArgs e)
+        {
+            await _localEngineClient.Containers.KillContainerAsync(_runningContainerId, new ContainerKillParameters { });
+
+            await _localEngineClient.Containers.RemoveContainerAsync(_runningContainerId, new ContainerRemoveParameters());
+            _runningContainerId = string.Empty;
+        }
+    }
+
+    internal class ProgressToDebug : IProgress<JSONMessage>
+    {
+        //internal Action<Message> _onCalled;
+
+        void IProgress<JSONMessage>.Report(JSONMessage value)
+        {
+            Debug.WriteLine(value.Status);
+            //_onCalled(value);
         }
     }
 }

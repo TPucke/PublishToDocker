@@ -58,6 +58,8 @@
             this.btnPush = new System.Windows.Forms.Button();
             this.txtTargetTag = new System.Windows.Forms.TextBox();
             this.lblTargetTag = new System.Windows.Forms.Label();
+            this.btnRun = new System.Windows.Forms.Button();
+            this.btnKill = new System.Windows.Forms.Button();
             this.grpBaseRegistry.SuspendLayout();
             this.grpTargetRegistry.SuspendLayout();
             this.SuspendLayout();
@@ -311,7 +313,7 @@
             // 
             // btnBuild
             // 
-            this.btnBuild.Location = new System.Drawing.Point(529, 335);
+            this.btnBuild.Location = new System.Drawing.Point(527, 261);
             this.btnBuild.Name = "btnBuild";
             this.btnBuild.Size = new System.Drawing.Size(257, 23);
             this.btnBuild.TabIndex = 104;
@@ -339,9 +341,9 @@
             // 
             // btnPush
             // 
-            this.btnPush.Location = new System.Drawing.Point(531, 374);
+            this.btnPush.Location = new System.Drawing.Point(527, 304);
             this.btnPush.Name = "btnPush";
-            this.btnPush.Size = new System.Drawing.Size(255, 23);
+            this.btnPush.Size = new System.Drawing.Size(257, 23);
             this.btnPush.TabIndex = 107;
             this.btnPush.Text = "Push To Target Registry";
             this.btnPush.UseVisualStyleBackColor = true;
@@ -364,11 +366,33 @@
             this.lblTargetTag.TabIndex = 109;
             this.lblTargetTag.Text = "Target Tag:";
             // 
+            // btnRun
+            // 
+            this.btnRun.Location = new System.Drawing.Point(527, 346);
+            this.btnRun.Name = "btnRun";
+            this.btnRun.Size = new System.Drawing.Size(257, 23);
+            this.btnRun.TabIndex = 110;
+            this.btnRun.Text = "Run";
+            this.btnRun.UseVisualStyleBackColor = true;
+            this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
+            // 
+            // btnKill
+            // 
+            this.btnKill.Location = new System.Drawing.Point(527, 383);
+            this.btnKill.Name = "btnKill";
+            this.btnKill.Size = new System.Drawing.Size(257, 23);
+            this.btnKill.TabIndex = 111;
+            this.btnKill.Text = "Kill";
+            this.btnKill.UseVisualStyleBackColor = true;
+            this.btnKill.Click += new System.EventHandler(this.btnKill_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.btnKill);
+            this.Controls.Add(this.btnRun);
             this.Controls.Add(this.lblTargetTag);
             this.Controls.Add(this.txtTargetTag);
             this.Controls.Add(this.btnPush);
@@ -425,6 +449,8 @@
         private System.Windows.Forms.Button btnPush;
         private System.Windows.Forms.TextBox txtTargetTag;
         private System.Windows.Forms.Label lblTargetTag;
+        private System.Windows.Forms.Button btnRun;
+        private System.Windows.Forms.Button btnKill;
     }
 }
 
